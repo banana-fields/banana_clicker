@@ -1,0 +1,129 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Banana Clicker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="banana-rain" aria-hidden="true"></div>
+
+  <div id="welcome-screen" class="welcome-screen">
+    <div class="welcome-bg-bananas" aria-hidden="true">
+      <span>🍌</span><span>🌴</span><span>🍌</span><span>⭐</span>
+      <span>🍌</span><span>🌴</span><span>🍌</span><span>⭐</span>
+      <span>🍌</span><span>🌴</span><span>🍌</span><span>⭐</span>
+    </div>
+    <div class="welcome-content">
+      <div class="welcome-logo-ring">
+        <div class="welcome-logo">🍌</div>
+      </div>
+      <h1 class="welcome-title">Banana Clicker</h1>
+      <p class="welcome-subtitle">Banana Factory · Las Bananas</p>
+      <p class="welcome-tagline">Clique. Produis. Domine l'empire de la banane.</p>
+      <button id="play-btn" class="play-btn" type="button">
+        <span class="play-btn-icon">▶</span>
+        <span class="play-btn-text">JOUER</span>
+      </button>
+      <p id="welcome-continue" class="welcome-continue hidden"></p>
+    </div>
+    <p class="welcome-footer">Projet de stage · Hockey roller & bananes</p>
+  </div>
+
+  <div id="game-screen" class="game-screen hidden">
+    <div class="app">
+      <header class="header">
+        <h1 class="game-title">🍌 Banana Clicker</h1>
+        <div class="header-stats">
+          <div class="stat-pill">
+            <span class="stat-label">Bananes</span>
+            <span id="banana-count" class="stat-value">0</span>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-label">Par seconde</span>
+            <span id="bps-display" class="stat-value">0</span>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-label">Par clic</span>
+            <span id="ppc-display" class="stat-value">1</span>
+          </div>
+          <div class="stat-pill stat-pill-clicks">
+            <span class="stat-label">Clics</span>
+            <span id="click-count" class="stat-value">0</span>
+          </div>
+          <div class="stat-pill stat-pill-prestige">
+            <span class="stat-label">Prestige</span>
+            <span id="prestige-display" class="stat-value">⭐ 0</span>
+          </div>
+        </div>
+      </header>
+
+      <main class="main">
+        <section class="click-zone">
+          <p class="click-hint">Clique la banane !</p>
+          <button id="banana-btn" class="banana-btn" aria-label="Collecter des bananes">
+            <span class="banana-emoji">🍌</span>
+          </button>
+          <p id="click-feedback" class="click-feedback"></p>
+          <div id="golden-banana" class="golden-banana hidden" title="Banane dorée ! Clique !">
+            🌟🍌
+          </div>
+        </section>
+
+        <aside class="shop">
+          <nav class="shop-tabs">
+            <button class="tab active" data-tab="buildings">Plantations</button>
+            <button class="tab" data-tab="upgrades">Améliorations</button>
+            <button class="tab" data-tab="achievements">Trophées</button>
+            <button class="tab" data-tab="prestige">Prestige</button>
+          </nav>
+
+          <div id="tab-buildings" class="tab-panel active">
+            <p class="panel-desc">Automatise ta production de bananes.</p>
+            <div id="buildings-list" class="item-list"></div>
+          </div>
+
+          <div id="tab-upgrades" class="tab-panel">
+            <p class="panel-desc">Booste tes clics et tes plantations.</p>
+            <div id="upgrades-list" class="item-list"></div>
+          </div>
+
+          <div id="tab-achievements" class="tab-panel">
+            <p class="panel-desc">Objectifs à débloquer.</p>
+            <div id="achievements-list" class="item-list"></div>
+          </div>
+
+          <div id="tab-prestige" class="tab-panel">
+            <div id="prestige-panel" class="prestige-panel"></div>
+          </div>
+        </aside>
+      </main>
+
+      <footer class="footer">
+        <button id="save-btn" class="footer-btn">Sauvegarder</button>
+        <button id="reset-btn" class="footer-btn danger">Reset</button>
+        <button id="sound-btn" class="footer-btn" type="button" aria-label="Couper le son">🔊 Sons</button>
+        <span class="footer-note">Progression sauvegardée automatiquement</span>
+      </footer>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <div id="cutscene-overlay" class="cutscene-overlay hidden" aria-hidden="true">
+    <div class="cutscene-box">
+      <button type="button" id="cutscene-skip" class="cutscene-skip">Passer ▶</button>
+      <div class="cutscene-visual">
+        <img id="cutscene-image" class="cutscene-image" alt="" hidden>
+        <div id="cutscene-fallback" class="cutscene-fallback"></div>
+      </div>
+      <h2 id="cutscene-title" class="cutscene-title"></h2>
+      <p id="cutscene-line" class="cutscene-line"></p>
+      <button type="button" id="cutscene-next" class="cutscene-next">Continuer</button>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
