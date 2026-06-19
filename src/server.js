@@ -6,12 +6,13 @@ const { MongoClient, ServerApiVersion } = require("mongodb");
 
 const PORT = process.env.PORT || 3000;
 const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017";
-const DB_NAME = "banana_clicker";
+const DB_NAME = process.env.MONGO_DB || "banana_clicker";
 const COLLECTION = "leaderboard";
+const PUBLIC_DIR = path.join(__dirname, "..", "public");
 
 const app = express();
 app.use(express.json());
-app.use(express.static(path.join(__dirname)));
+app.use(express.static(PUBLIC_DIR));
 
 let db;
 
@@ -41,6 +42,10 @@ async function connectMongo() {
   );
   console.log(`MongoDB connecté : ${MONGO_URI}/${DB_NAME}`);
 }
+
+app.get("/healthz", (_req, res) => {
+  res.json({ ok: true });
+});
 
 // GET /api/leaderboard — top 10
 app.get("/api/leaderboard", async (_req, res) => {
