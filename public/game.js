@@ -68,8 +68,8 @@ function playPrestigeSound() {
   setTimeout(() => playTone(1568, 0.5, "sine", 0.1), 550);
 }
 
-const PRESTIGE_MIN_EARNED = 100000;
-const PRESTIGE_BONUS_PER_POINT = 0.12;
+const PRESTIGE_MIN_EARNED = 250000;
+const PRESTIGE_BONUS_PER_POINT = 0.08;
 
 function updateSoundButton() {
   const btn = document.getElementById("sound-btn");
@@ -97,16 +97,61 @@ const BUILDINGS = [
   { id: "port", name: "Port", icon: "🚢", desc: "Export mondial de bananes.", baseCost: 85000, baseBps: 1200, costMult: 1.18 },
   { id: "empire", name: "Empire Banane", icon: "👑", desc: "Contrôle l'économie mondiale de la banane.", baseCost: 500000, baseBps: 7000, costMult: 1.18 },
   { id: "temple", name: "Temple Banane", icon: "🛕", desc: "Les dieux bénissent tes récoltes.", baseCost: 3500000, baseBps: 45000, costMult: 1.18 },
+  { id: "observatoire", name: "Observatoire Banane", icon: "🔭", desc: "Repère les constellations de bananes mûres.", baseCost: 85000000, baseBps: 900000, costMult: 1.22 },
+  { id: "lune", name: "Lune Banane", icon: "🌙", desc: "Une base lunaire où la gravité aide les récoltes.", baseCost: 4200000000, baseBps: 42000000, costMult: 1.25 },
+  { id: "portail", name: "Portail Koko", icon: "🌀", desc: "Vole des bananes dans les dimensions de Gros Koko.", baseCost: 350000000000, baseBps: 2500000000, costMult: 1.28 },
 ];
 
-const UPGRADES = [
+const BASE_UPGRADES = [
   { id: "click2", name: "Pouces musclés", icon: "💪", desc: "Double la puissance de clic.", cost: 200, type: "click", mult: 2, req: () => state.totalEarned >= 100 },
   { id: "click5", name: "Gants banane", icon: "🧤", desc: "×5 puissance de clic.", cost: 5000, type: "click", mult: 5, req: () => state.totalEarned >= 5000 },
   { id: "click10", name: "Banane dorée", icon: "✨", desc: "×10 puissance de clic.", cost: 150000, type: "click", mult: 10, req: () => state.totalEarned >= 150000 },
-  { id: "bananier2", name: "Engrais miracle", icon: "🧪", desc: "Bananier ×2 production.", cost: 1200, type: "building", buildingId: "bananier", mult: 2, req: () => getBuildingCount("bananier") >= 15 },
-  { id: "plantation2", name: "Irrigation", icon: "💧", desc: "Plantation ×2 production.", cost: 15000, type: "building", buildingId: "plantation", mult: 2, req: () => getBuildingCount("plantation") >= 15 },
   { id: "global2", name: "Révolution banane", icon: "🍌", desc: "Toute production ×2.", cost: 300000, type: "global", mult: 2, req: () => state.totalEarned >= 500000 },
   { id: "global5", name: "Ère de la banane", icon: "🌟", desc: "Toute production ×3.", cost: 5000000, type: "global", mult: 3, req: () => state.totalEarned >= 5000000 },
+];
+
+const BUILDING_UPGRADE_TIERS = [
+  { count: 5, mult: 2, costMult: 25, label: "Cadence", icon: "⚙️" },
+  { count: 15, mult: 2.5, costMult: 120, label: "Optimisation", icon: "🧪" },
+  { count: 35, mult: 3.5, costMult: 900, label: "Maîtrise", icon: "📈" },
+  { count: 75, mult: 5, costMult: 8000, label: "Industrialisation", icon: "🏗️" },
+];
+
+const UPGRADES = [
+  ...BASE_UPGRADES,
+  ...BUILDINGS.flatMap((building) =>
+    BUILDING_UPGRADE_TIERS.map((tier) => ({
+      id: `${building.id}${tier.count}`,
+      name: `${tier.label} ${building.name}`,
+      icon: tier.icon,
+      desc: `${building.name} ×${tier.mult} production à ${tier.count} unités.`,
+      cost: Math.floor(building.baseCost * tier.costMult),
+      type: "building",
+      buildingId: building.id,
+      mult: tier.mult,
+      req: () => getBuildingCount(building.id) >= tier.count,
+    }))
+  ),
+];
+
+const PRESTIGE_TREE = [
+  { id: "roots", name: "Racines stellaires", icon: "🌱", cost: 1, max: 5, value: 0.1, parents: [], desc: "+10% production globale par rang." },
+  { id: "clickPath", name: "Doigts légendaires", icon: "👆", cost: 2, max: 5, value: 0.35, parents: ["roots"], desc: "+35% puissance de clic par rang." },
+  { id: "idlePath", name: "Plantations sacrées", icon: "🌴", cost: 2, max: 5, value: 0.18, parents: ["roots"], desc: "+18% production passive par rang." },
+  { id: "cheapStart", name: "Logistique agile", icon: "📦", cost: 3, max: 4, value: 0.05, parents: ["roots"], desc: "-5% coût des bâtiments par rang." },
+  { id: "goldLuck", name: "Aimant doré", icon: "🌟", cost: 3, max: 4, value: 0.25, parents: ["clickPath"], desc: "+25% chance de banane dorée par rang." },
+  { id: "goldPower", name: "Alchimie dorée", icon: "✨", cost: 4, max: 4, value: 0.25, parents: ["goldLuck"], desc: "+25% puissance des bananes dorées par rang." },
+  { id: "bulkWisdom", name: "Sagesse de masse", icon: "🧠", cost: 4, max: 3, value: 0.08, parents: ["idlePath"], desc: "+8% production globale par tranche de 25 bâtiments." },
+  { id: "templeEcho", name: "Écho du Temple", icon: "🛕", cost: 6, max: 3, value: 0.35, parents: ["idlePath", "cheapStart"], desc: "+35% production des tiers Empire et Temple par rang." },
+  { id: "frenzyMaster", name: "Danse frénétique", icon: "⚡", cost: 8, max: 2, value: 0.3, parents: ["goldPower", "bulkWisdom"], desc: "+30% durée des bonus temporaires par rang." },
+  { id: "ascendantClan", name: "Clan ascendant", icon: "👑", cost: 12, max: 1, value: 1, parents: ["templeEcho", "frenzyMaster"], desc: "Débloque une vraie accélération de mid-game : +75% production globale." },
+];
+
+const GOLDEN_VARIANTS = [
+  { id: "burst", label: "Banane jackpot", icon: "🌟🍌", weight: 45, desc: "Bonus instantané massif." },
+  { id: "productionFrenzy", label: "Fièvre des plantations", icon: "🔥🍌", weight: 25, desc: "Production passive ×5 temporairement." },
+  { id: "clickFrenzy", label: "Doigts turbo", icon: "⚡🍌", weight: 20, desc: "Clics ×15 temporairement." },
+  { id: "discount", label: "Marché doré", icon: "💰🍌", weight: 10, desc: "Coûts des bâtiments réduits temporairement." },
 ];
 
 const ACHIEVEMENTS = [
@@ -242,6 +287,8 @@ const state = {
   globalMult: 1,
   buildingMults: {},
   prestigePoints: 0,
+  prestigeSpent: 0,
+  prestigeTree: {},
   prestigeCount: 0,
   seenCutscenes: [],
 };
@@ -253,6 +300,8 @@ BUILDINGS.forEach((b) => {
 
 let goldenVisible = false;
 let goldenTimeout = null;
+let currentGoldenVariant = null;
+let activeTimedEffects = [];
 let lastSave = 0;
 let lastShopUpdate = 0;
 let cutsceneActive = false;
@@ -287,7 +336,7 @@ function getBuildingCount(id) {
 }
 
 function buildingCost(building, count) {
-  return Math.floor(building.baseCost * Math.pow(building.costMult, count));
+  return Math.floor(building.baseCost * Math.pow(building.costMult, count) * getBuildingCostMultiplier());
 }
 
 function formatNumber(n) {
@@ -314,8 +363,75 @@ function formatNumber(n) {
   return v.toLocaleString("fr-FR", { maximumFractionDigits: 2 }) + "T";
 }
 
+function getPrestigeNodeLevel(id) {
+  return state.prestigeTree[id] || 0;
+}
+
+function getPrestigeNode(id) {
+  return PRESTIGE_TREE.find((node) => node.id === id);
+}
+
+function getAvailablePrestigePoints() {
+  return Math.max(0, state.prestigePoints - state.prestigeSpent);
+}
+
+function getPrestigeNodeBonus(id) {
+  const node = getPrestigeNode(id);
+  if (!node) return 0;
+  return getPrestigeNodeLevel(id) * node.value;
+}
+
+function canUnlockPrestigeNode(node) {
+  if (getPrestigeNodeLevel(node.id) >= node.max) return false;
+  if (getAvailablePrestigePoints() < node.cost) return false;
+  return node.parents.every((parentId) => getPrestigeNodeLevel(parentId) > 0);
+}
+
+function getActiveEffect(id) {
+  const now = Date.now();
+  activeTimedEffects = activeTimedEffects.filter((effect) => effect.expiresAt > now);
+  return activeTimedEffects.find((effect) => effect.id === id);
+}
+
+function getTimedMultiplier(id) {
+  const effect = getActiveEffect(id);
+  return effect ? effect.mult : 1;
+}
+
+function getGoldenPowerMultiplier() {
+  return 1 + getPrestigeNodeBonus("goldPower");
+}
+
+function getGoldenDurationMultiplier() {
+  return 1 + getPrestigeNodeBonus("frenzyMaster");
+}
+
+function getGoldenSpawnMultiplier() {
+  return 1 + getPrestigeNodeBonus("goldLuck");
+}
+
+function getBuildingCostMultiplier() {
+  const prestigeDiscount = Math.min(0.5, getPrestigeNodeBonus("cheapStart"));
+  const timedDiscount = getActiveEffect("discount") ? 0.75 : 1;
+  return Math.max(0.35, (1 - prestigeDiscount) * timedDiscount);
+}
+
+function getBulkWisdomMultiplier() {
+  const levelBonus = getPrestigeNodeBonus("bulkWisdom");
+  if (levelBonus <= 0) return 1;
+  const totalBuildings = BUILDINGS.reduce((sum, building) => sum + getBuildingCount(building.id), 0);
+  return 1 + Math.floor(totalBuildings / 25) * levelBonus;
+}
+
+function getLateTierMultiplier(buildingId) {
+  if (buildingId !== "empire" && buildingId !== "temple") return 1;
+  return 1 + getPrestigeNodeBonus("templeEcho");
+}
+
 function getPrestigeMultiplier() {
-  return 1 + state.prestigePoints * PRESTIGE_BONUS_PER_POINT;
+  const base = 1 + state.prestigePoints * PRESTIGE_BONUS_PER_POINT;
+  const tree = 1 + getPrestigeNodeBonus("roots") + (getPrestigeNodeLevel("ascendantClan") > 0 ? 0.75 : 0);
+  return base * tree * getBulkWisdomMultiplier();
 }
 
 function getPrestigeGainFromEarned(earned) {
@@ -326,7 +442,7 @@ function getPrestigeGainFromEarned(earned) {
 function getBuildingBps(building) {
   const count = getBuildingCount(building.id);
   const mult = state.buildingMults[building.id] || 1;
-  return count * building.baseBps * mult * state.globalMult * getPrestigeMultiplier();
+  return count * building.baseBps * mult * state.globalMult * getPrestigeMultiplier() * (1 + getPrestigeNodeBonus("idlePath")) * getLateTierMultiplier(building.id) * getTimedMultiplier("productionFrenzy");
 }
 
 function getTotalBps() {
@@ -338,7 +454,7 @@ function getClickPower() {
   const count = getBuildingCount("cursor");
   const mult = state.buildingMults[cursor.id] || 1;
   const cursorContribution = count * cursor.baseBps * mult * 0.5;
-  return Math.max(1, Math.floor((1 + cursorContribution) * state.clickMult * state.globalMult * getPrestigeMultiplier()));
+  return Math.max(1, Math.floor((1 + cursorContribution) * state.clickMult * state.globalMult * getPrestigeMultiplier() * (1 + getPrestigeNodeBonus("clickPath")) * getTimedMultiplier("clickFrenzy")));
 }
 
 function addBananas(amount) {
@@ -392,6 +508,18 @@ function spawnFallingBananas(clickX) {
   }
 }
 
+function addTimedEffect(id, label, mult, durationSeconds) {
+  const duration = Math.round(durationSeconds * getGoldenDurationMultiplier());
+  activeTimedEffects = activeTimedEffects.filter((effect) => effect.id !== id);
+  activeTimedEffects.push({
+    id,
+    label,
+    mult,
+    expiresAt: Date.now() + duration * 1000,
+  });
+  showToast(`${label} actif (${duration}s)`);
+}
+
 function onBananaClick(e) {
   if (!gameStarted || cutsceneActive) return;
 
@@ -417,27 +545,44 @@ function onGoldenClick(e) {
   if (!goldenVisible) return;
   e.stopPropagation();
 
-  const bonus = Math.max(100, getTotalBps() * 30 + getClickPower() * 50);
-  addBananas(bonus);
+  const variant = currentGoldenVariant || GOLDEN_VARIANTS[0];
+  const power = getGoldenPowerMultiplier();
+  let bonus = 0;
+
+  if (variant.id === "burst") {
+    bonus = Math.max(100, (getTotalBps() * 45 + getClickPower() * 75) * power);
+    addBananas(bonus);
+  } else if (variant.id === "productionFrenzy") {
+    addTimedEffect("productionFrenzy", "Fièvre des plantations ×5", 5 * power, 30);
+  } else if (variant.id === "clickFrenzy") {
+    addTimedEffect("clickFrenzy", "Doigts turbo ×15", 15 * power, 20);
+  } else if (variant.id === "discount") {
+    addTimedEffect("discount", "Marché doré -25% coûts", 1, 25);
+  }
+
   state.goldenClicked++;
 
   goldenVisible = false;
+  currentGoldenVariant = null;
   goldenBananaEl.classList.add("hidden");
   clearTimeout(goldenTimeout);
 
   playGoldenSound();
-  showFloatText(e.clientX, e.clientY, "+" + formatNumber(bonus) + " 🌟");
+  showFloatText(e.clientX, e.clientY, bonus > 0 ? "+" + formatNumber(bonus) + " 🌟" : variant.label);
   spawnFallingBananas(e.clientX);
-  showToast("Banane dorée ! +" + formatNumber(bonus));
+  if (bonus > 0) {
+    showToast(`${variant.label} ! +${formatNumber(bonus)}`);
+  }
   updateUI();
 }
 
 function maybeSpawnGolden() {
   if (goldenVisible) return;
-  if (Math.random() < 0.008) spawnGolden();
+  if (Math.random() < 0.008 * getGoldenSpawnMultiplier()) spawnGolden();
 }
 
 function spawnGolden() {
+  currentGoldenVariant = pickGoldenVariant();
   goldenVisible = true;
   const zone = document.querySelector(".click-zone");
   const rect = zone.getBoundingClientRect();
@@ -445,26 +590,82 @@ function spawnGolden() {
   const y = 60 + Math.random() * (rect.height - 140);
   goldenBananaEl.style.left = x + "px";
   goldenBananaEl.style.top = y + "px";
+  goldenBananaEl.textContent = currentGoldenVariant.icon;
+  goldenBananaEl.title = `${currentGoldenVariant.label} — ${currentGoldenVariant.desc}`;
   goldenBananaEl.classList.remove("hidden");
 
   goldenTimeout = setTimeout(() => {
     goldenVisible = false;
+    currentGoldenVariant = null;
     goldenBananaEl.classList.add("hidden");
   }, 8000);
 }
 
-function buyBuilding(buildingId) {
+function pickGoldenVariant() {
+  const totalWeight = GOLDEN_VARIANTS.reduce((sum, variant) => sum + variant.weight, 0);
+  let roll = Math.random() * totalWeight;
+  for (const variant of GOLDEN_VARIANTS) {
+    roll -= variant.weight;
+    if (roll <= 0) return variant;
+  }
+  return GOLDEN_VARIANTS[0];
+}
+
+function buyBuilding(buildingId, quantity = 1) {
   const building = BUILDINGS.find((b) => b.id === buildingId);
-  const count = getBuildingCount(buildingId);
-  const cost = buildingCost(building, count);
+  let count = getBuildingCount(buildingId);
+  let bought = 0;
+  let totalCost = 0;
 
-  if (state.bananas < cost) return;
+  while (bought < quantity) {
+    const cost = buildingCost(building, count);
+    if (state.bananas < cost) break;
+    state.bananas -= cost;
+    totalCost += cost;
+    count += 1;
+    bought += 1;
+  }
 
-  state.bananas -= cost;
-  state.buildings[buildingId] = count + 1;
+  if (bought <= 0) return;
+
+  state.buildings[buildingId] = count;
   playBuySound();
-  showToast(building.name + " acheté !");
+  showToast(`${building.name} ×${bought} acheté${bought > 1 ? "s" : ""} (${formatNumber(totalCost)} 🍌)`);
   checkCutsceneTriggers("building", buildingId);
+  updateUI();
+}
+
+function buyMaxBuilding(buildingId) {
+  buyBuilding(buildingId, Number.POSITIVE_INFINITY);
+}
+
+function buyAllAffordableBuildings() {
+  let bought = 0;
+  const ordered = [...BUILDINGS].reverse();
+
+  let keepBuying = true;
+  while (keepBuying) {
+    keepBuying = false;
+    for (const building of ordered) {
+      const count = getBuildingCount(building.id);
+      const cost = buildingCost(building, count);
+      if (state.bananas >= cost) {
+        state.bananas -= cost;
+        state.buildings[building.id] = count + 1;
+        bought += 1;
+        keepBuying = true;
+        checkCutsceneTriggers("building", building.id);
+      }
+    }
+  }
+
+  if (bought <= 0) {
+    showToast("Aucun bâtiment abordable.");
+    return;
+  }
+
+  playBuySound();
+  showToast(`Achat groupé : ${bought} bâtiment${bought > 1 ? "s" : ""}`);
   updateUI();
 }
 
@@ -490,6 +691,36 @@ function buyUpgrade(upgradeId) {
   updateUI();
 }
 
+function buyAllAffordableUpgrades() {
+  const affordable = UPGRADES
+    .filter((upgrade) => upgrade.req() && !state.upgrades.includes(upgrade.id) && state.bananas >= upgrade.cost)
+    .sort((a, b) => a.cost - b.cost);
+
+  let bought = 0;
+  affordable.forEach((upgrade) => {
+    if (state.bananas < upgrade.cost || state.upgrades.includes(upgrade.id)) return;
+    state.bananas -= upgrade.cost;
+    state.upgrades.push(upgrade.id);
+    if (upgrade.type === "click") {
+      state.clickMult *= upgrade.mult;
+    } else if (upgrade.type === "building") {
+      state.buildingMults[upgrade.buildingId] *= upgrade.mult;
+    } else if (upgrade.type === "global") {
+      state.globalMult *= upgrade.mult;
+    }
+    bought += 1;
+  });
+
+  if (bought <= 0) {
+    showToast("Aucune amélioration abordable.");
+    return;
+  }
+
+  playBuySound();
+  showToast(`Améliorations achetées : ${bought}`);
+  updateUI();
+}
+
 function checkAchievements() {
   ACHIEVEMENTS.forEach((ach) => {
     if (!state.achievements.includes(ach.id) && ach.check()) {
@@ -501,7 +732,13 @@ function checkAchievements() {
 }
 
 function renderBuildings() {
-  buildingsListEl.innerHTML = BUILDINGS.map((b) => {
+  const actions = `
+    <div class="building-actions">
+      <button type="button" id="buy-all-buildings-btn" class="mini-action-btn">Acheter tout abordable</button>
+    </div>
+  `;
+
+  buildingsListEl.innerHTML = actions + BUILDINGS.map((b) => {
     const count = getBuildingCount(b.id);
     const cost = buildingCost(b, count);
     const bps = getBuildingBps(b);
@@ -516,6 +753,7 @@ function renderBuildings() {
         <div class="item-meta">
           <div class="item-cost">🍌 ${formatNumber(cost)}</div>
           <div class="item-count">${count} · +${formatNumber(bps)}/s</div>
+          <button type="button" class="mini-action-btn buy-max-btn" data-buy-max="${b.id}" ${canBuy ? "" : "disabled"}>Max</button>
         </div>
       </div>
     `;
@@ -523,6 +761,14 @@ function renderBuildings() {
 
   buildingsListEl.querySelectorAll(".shop-item:not(.disabled)").forEach((el) => {
     el.addEventListener("click", () => buyBuilding(el.dataset.building));
+  });
+
+  document.getElementById("buy-all-buildings-btn")?.addEventListener("click", buyAllAffordableBuildings);
+  buildingsListEl.querySelectorAll("[data-buy-max]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (!btn.disabled) buyMaxBuilding(btn.dataset.buyMax);
+    });
   });
 }
 
@@ -538,6 +784,14 @@ function renderUpgrades() {
   const owned = UPGRADES.filter((u) => state.upgrades.includes(u.id));
 
   let html = "";
+
+  if (available.length > 0) {
+    html += `
+      <div class="building-actions">
+        <button type="button" id="buy-all-upgrades-btn" class="mini-action-btn">Acheter toutes dispo</button>
+      </div>
+    `;
+  }
 
   available.forEach((u) => {
     const canBuy = state.bananas >= u.cost;
@@ -586,6 +840,7 @@ function renderUpgrades() {
       el.addEventListener("click", () => buyUpgrade(el.dataset.upgrade));
     }
   });
+  document.getElementById("buy-all-upgrades-btn")?.addEventListener("click", buyAllAffordableUpgrades);
 }
 
 function renderAchievements() {
@@ -610,8 +865,34 @@ function renderPrestige() {
   const gain = getPrestigeGainFromEarned(state.totalEarned);
   const mult = getPrestigeMultiplier();
   const bonusPct = Math.round((mult - 1) * 100);
-  const nextBonusPct = Math.round((mult + gain * PRESTIGE_BONUS_PER_POINT - 1) * 100);
+  const nextBase = 1 + (state.prestigePoints + gain) * PRESTIGE_BONUS_PER_POINT;
+  const currentBase = 1 + state.prestigePoints * PRESTIGE_BONUS_PER_POINT;
+  const nextMult = currentBase > 0 ? mult * (nextBase / currentBase) : mult;
+  const nextBonusPct = Math.round((nextMult - 1) * 100);
   const canPrestige = gain > 0;
+  const availablePoints = getAvailablePrestigePoints();
+  const treeHtml = PRESTIGE_TREE.map((node) => {
+    const level = getPrestigeNodeLevel(node.id);
+    const maxed = level >= node.max;
+    const canBuy = canUnlockPrestigeNode(node);
+    const lockedByParent = !node.parents.every((parentId) => getPrestigeNodeLevel(parentId) > 0);
+    const parentText = node.parents.length > 0
+      ? `Requiert : ${node.parents.map((parentId) => getPrestigeNode(parentId)?.name || parentId).join(", ")}`
+      : "Racine de l'arbre";
+    return `
+      <div class="prestige-node ${maxed ? "maxed" : ""} ${canBuy ? "available" : "locked"}">
+        <div class="prestige-node-icon">${node.icon}</div>
+        <div class="prestige-node-info">
+          <div class="prestige-node-name">${node.name}</div>
+          <div class="prestige-node-desc">${node.desc}</div>
+          <div class="prestige-node-req">${lockedByParent ? parentText : `Rang ${level}/${node.max}`}</div>
+        </div>
+        <button type="button" class="prestige-node-btn" data-prestige-node="${node.id}" ${canBuy ? "" : "disabled"}>
+          ${maxed ? "MAX" : `${node.cost} ⭐`}
+        </button>
+      </div>
+    `;
+  }).join("");
 
   prestigePanelEl.innerHTML = `
     <div class="prestige-hero">
@@ -622,7 +903,11 @@ function renderPrestige() {
     <div class="prestige-stats">
       <div class="prestige-stat">
         <span class="prestige-stat-label">Points</span>
-        <span class="prestige-stat-value">${state.prestigePoints} ⭐</span>
+        <span class="prestige-stat-value">${availablePoints}/${state.prestigePoints} ⭐</span>
+      </div>
+      <div class="prestige-stat">
+        <span class="prestige-stat-label">Investis</span>
+        <span class="prestige-stat-value">${state.prestigeSpent} ⭐</span>
       </div>
       <div class="prestige-stat">
         <span class="prestige-stat-label">Prestiges</span>
@@ -638,13 +923,18 @@ function renderPrestige() {
       </div>
     </div>
     <p class="prestige-desc">
-      Prestiger efface ta run (bananes, plantations, améliorations) mais garde tes trophées et tes points de prestige.
-      Chaque point donne +${Math.round(PRESTIGE_BONUS_PER_POINT * 100)}% sur toute la production.
+      Prestiger efface ta run (bananes, plantations, améliorations) mais garde tes trophées, points et arbre de prestige.
+      Chaque point donne +${Math.round(PRESTIGE_BONUS_PER_POINT * 100)}% de base, puis l'arbre ajoute des choix permanents.
       Minimum : ${formatNumber(PRESTIGE_MIN_EARNED)} bananes gagnées cette run.
     </p>
     <button type="button" id="prestige-btn" class="prestige-btn ${canPrestige ? "ready" : "disabled"}" ${canPrestige ? "" : "disabled"}>
       ${canPrestige ? `⭐ PRESTIGER (+${gain} pt → +${nextBonusPct}%)` : "🔒 Pas assez de bananes cette run"}
     </button>
+    <div class="prestige-tree">
+      <div class="prestige-tree-title">Arbre de prestige</div>
+      <p class="prestige-tree-help">Les premiers rangs sont accessibles, les branches hautes coûtent cher : choisis une spécialisation.</p>
+      ${treeHtml}
+    </div>
     <p class="prestige-warning">Le bouton Reset efface tout, y compris le prestige.</p>
   `;
 
@@ -652,6 +942,22 @@ function renderPrestige() {
   if (btn && canPrestige) {
     btn.addEventListener("click", doPrestige);
   }
+
+  prestigePanelEl.querySelectorAll("[data-prestige-node]").forEach((btn) => {
+    btn.addEventListener("click", () => buyPrestigeNode(btn.dataset.prestigeNode));
+  });
+}
+
+function buyPrestigeNode(nodeId) {
+  const node = getPrestigeNode(nodeId);
+  if (!node || !canUnlockPrestigeNode(node)) return;
+
+  state.prestigeTree[nodeId] = getPrestigeNodeLevel(nodeId) + 1;
+  state.prestigeSpent += node.cost;
+  playBuySound();
+  showToast(`Prestige : ${node.name} rang ${state.prestigeTree[nodeId]}/${node.max}`);
+  updateUI();
+  persistSave();
 }
 
 function queueCutscene(id) {
@@ -789,11 +1095,13 @@ function resetRunState() {
   state.upgrades = [];
   state.clickMult = 1;
   state.globalMult = 1;
+  activeTimedEffects = [];
   BUILDINGS.forEach((b) => {
     state.buildings[b.id] = 0;
     state.buildingMults[b.id] = 1;
   });
   goldenVisible = false;
+  currentGoldenVariant = null;
   goldenBananaEl.classList.add("hidden");
   clearTimeout(goldenTimeout);
 }
@@ -837,6 +1145,8 @@ function buildSaveData() {
     globalMult: state.globalMult,
     buildingMults: state.buildingMults,
     prestigePoints: state.prestigePoints,
+    prestigeSpent: state.prestigeSpent,
+    prestigeTree: state.prestigeTree,
     prestigeCount: state.prestigeCount,
     seenCutscenes: state.seenCutscenes,
   };
@@ -884,8 +1194,11 @@ function loadGame() {
     state.clickMult = data.clickMult || 1;
     state.globalMult = data.globalMult || 1;
     state.prestigePoints = data.prestigePoints || 0;
+    state.prestigeSpent = data.prestigeSpent || 0;
+    state.prestigeTree = data.prestigeTree || {};
     state.prestigeCount = data.prestigeCount || 0;
     state.seenCutscenes = data.seenCutscenes || [];
+    state.prestigeSpent = Math.min(state.prestigeSpent, state.prestigePoints);
 
     if (data.buildings) {
       Object.assign(state.buildings, data.buildings);
@@ -987,6 +1300,7 @@ function gameLoop(now) {
     accumulator = 0;
     bananaCountEl.textContent = formatNumber(state.bananas);
     bpsDisplayEl.textContent = formatNumber(getTotalBps());
+    ppcDisplayEl.textContent = formatNumber(getClickPower());
 
     const nowMs = Date.now();
     if (nowMs - lastShopUpdate > 1000) {
@@ -1007,7 +1321,7 @@ function gameLoop(now) {
 requestAnimationFrame(gameLoop);
 
 setInterval(() => {
-  if (!gameStarted || goldenVisible || Math.random() >= 0.15) return;
+  if (!gameStarted || goldenVisible || Math.random() >= Math.min(0.45, 0.15 * getGoldenSpawnMultiplier())) return;
   spawnGolden();
 }, 30000);
 

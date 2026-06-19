@@ -389,6 +389,17 @@ body::after {
   border-radius: 3px;
 }
 
+.building-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding-bottom: 4px;
+  background: linear-gradient(180deg, rgba(255, 235, 150, 0.95), rgba(255, 235, 150, 0));
+}
+
 .shop-item {
   display: flex;
   align-items: center;
@@ -465,6 +476,29 @@ body::after {
   font-size: 11px;
   color: var(--green);
   margin-top: 2px;
+}
+
+.mini-action-btn {
+  margin-top: 6px;
+  padding: 5px 9px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(255, 248, 210, 0.95);
+  color: var(--green-dark);
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s, opacity 0.15s;
+}
+
+.mini-action-btn:hover:not(:disabled) {
+  background: var(--banana-light);
+  transform: translateY(-1px);
+}
+
+.mini-action-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .footer {
@@ -859,6 +893,93 @@ body::after {
   border: 1px solid var(--border);
   cursor: not-allowed;
   opacity: 0.7;
+}
+
+.prestige-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.prestige-tree-title {
+  font-size: 15px;
+  font-weight: 900;
+  color: var(--green-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.prestige-tree-help {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+.prestige-node {
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card);
+}
+
+.prestige-node.available {
+  border-color: var(--banana-dark);
+}
+
+.prestige-node.locked {
+  opacity: 0.58;
+}
+
+.prestige-node.maxed {
+  border-color: var(--green);
+  background: rgba(34, 197, 94, 0.12);
+  opacity: 1;
+}
+
+.prestige-node-icon {
+  font-size: 26px;
+  text-align: center;
+}
+
+.prestige-node-name {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.prestige-node-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.3;
+  margin-top: 2px;
+}
+
+.prestige-node-req {
+  font-size: 10px;
+  color: var(--green);
+  margin-top: 4px;
+}
+
+.prestige-node-btn {
+  min-width: 54px;
+  padding: 8px 10px;
+  border: 1px solid var(--banana-dark);
+  border-radius: 999px;
+  background: var(--banana-light);
+  color: var(--green-dark);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.prestige-node-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  background: var(--bg-card);
+  color: var(--text-muted);
 }
 
 .prestige-warning {
